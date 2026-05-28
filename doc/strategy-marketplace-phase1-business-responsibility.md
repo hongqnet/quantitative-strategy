@@ -395,11 +395,4 @@ Header:
 |Push 服务|Push 服务 @李铎|Web Push 投递接口、WebSocket 触达、错误码、回执、前端连接协议|后端消息请求、前端 WebSocket 联调|
 |前端页面|前端开发 @夏维森\(Vincent\)|Marketplace、Activity、Deployed、推荐区域、策略详情、手动回测、Push 信息流、部署标记和交易操作交互|策略广场后端 API、交易后端 API、Push WebSocket、算法/推荐/交易数据|
 
-- Look up
-
-- Translate
-
-- Setting
-
-Searching for \.\.\.
 
