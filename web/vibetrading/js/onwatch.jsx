@@ -1,147 +1,6 @@
-// On Watch tab — portfolio overview, watch cards (with positions), AI push feed.
+// On Watch tab — portfolio overview, watch cards, AI push feed.
 
 const { useState: useStateW, useEffect: useEffectW } = React;
-
-function WatchLeaderboard({ watched, dark, onPreview }) {
-  const [range, setRange] = useStateW('1M');
-  const [statusFilter, setStatusFilter] = useStateW('all');
-  const [marketFilter, setMarketFilter] = useStateW('all');
-
-  const filtered = watched.filter(w => {
-    if (statusFilter !== 'all' && w.deployStatus !== statusFilter) return false;
-    if (marketFilter !== 'all' && w.meta?.market !== marketFilter) return false;
-    return true;
-  });
-
-  const lines = filtered.map((w, i) => ({
-    id: w.id,
-    name: w.meta?.name || w.id,
-    color: w.meta?.author?.avatarColor || ['#0284c7','#0ea5e9','#10b981','#7c3aed'][i % 4],
-    curve: w.curve,
-    cumPct: w.cumPnLPct,
-    todayPct: w.todayPnLPct,
-    sharpe: w.sharpe,
-    status: w.deployStatus,
-  }));
-  const sorted = lines.slice().sort((a, b) => b.cumPct - a.cumPct);
-
-  const markets = [...new Set(watched.map(w => w.meta?.market).filter(Boolean))];
-
-  const statusOpts = [
-    { id: 'all', label: 'All' },
-    { id: 'watching', label: 'Watching' },
-    { id: 'paper', label: 'Paper' },
-    { id: 'live', label: 'Deployed' },
-    { id: 'paused', label: 'Paused' },
-  ];
-
-  return (
-    <section className={`rounded-2xl border ${dark ? 'border-white/[0.05] bg-white/[0.02]' : 'border-slate-200/70 bg-white elev-card'}`}>
-      <div className={`flex items-start justify-between gap-3 border-b px-5 py-4 ${dark ? 'border-white/[0.05]' : 'border-slate-100/80'}`}>
-        <div>
-          <div className={`flex items-center gap-2 text-[15px] font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>
-            Shortlist leaderboard
-            <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${dark ? 'bg-white/8 text-white/70' : 'bg-slate-100 text-slate-500'}`}>{filtered.length} of {watched.length}</span>
-          </div>
-          <div className={`mt-0.5 text-[12px] ${dark ? 'text-white/55' : 'text-slate-500'}`}>
-            Side-by-side cumulative performance since each one was added. Hover or click a row to focus.
-          </div>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {['1W','1M','3M','All'].map(r => (
-            <button key={r} onClick={() => setRange(r)} className={`rounded-md px-2 py-1 text-[11.5px] font-medium ${
-              r === range
-                ? (dark ? 'bg-white/12 text-white' : 'bg-slate-900 text-white')
-                : (dark ? 'text-white/60 hover:bg-white/8' : 'text-slate-500 hover:bg-slate-100')
-            }`}>{r}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Condition filters */}
-      {markets.length > 1 && (
-        <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-2.5 ${dark ? 'border-white/[0.05]' : 'border-slate-100/80'}`}>
-          <div className="flex items-center gap-1.5">
-            <span className={`text-[10px] font-bold uppercase tracking-[0.12em] ${dark ? 'text-white/45' : 'text-slate-400'}`}>Market</span>
-            <button onClick={() => setMarketFilter('all')} className={`rounded-md px-2 py-1 text-[11.5px] font-medium ${
-              marketFilter === 'all'
-                ? (dark ? 'bg-white/12 text-white' : 'bg-slate-900 text-white')
-                : (dark ? 'text-white/60 hover:bg-white/8' : 'text-slate-500 hover:bg-slate-100')
-            }`}>All</button>
-            {markets.map(m => (
-              <button key={m} onClick={() => setMarketFilter(m)} className={`rounded-md px-2 py-1 text-[11.5px] font-medium ${
-                marketFilter === m
-                  ? (dark ? 'bg-white/12 text-white' : 'bg-slate-900 text-white')
-                  : (dark ? 'text-white/60 hover:bg-white/8' : 'text-slate-500 hover:bg-slate-100')
-              }`}>{m}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-5">
-        <div className="lg:col-span-3 p-4 pl-2">
-          <LeaderboardChart lines={lines} height={220} dark={dark} />
-        </div>
-        <div className={`lg:col-span-2 min-w-0 overflow-hidden border-l ${dark ? 'border-white/[0.05]' : 'border-slate-200'}`}>
-          <table className="w-full text-[12px] table-fixed">
-            <thead className={dark ? 'text-white/45' : 'text-slate-400'}>
-              <tr>
-                <th className="w-[28px] px-2 py-2 text-left font-medium">#</th>
-                <th className="py-2 text-left font-medium">Strategy</th>
-                <th className="w-[72px] py-2 text-right font-medium">Cum.</th>
-                <th className="w-[62px] py-2 text-right font-medium">Today</th>
-                <th className="w-[52px] px-2 py-2 text-right font-medium">Sharpe</th>
-              </tr>
-            </thead>
-            <tbody className={dark ? 'text-white/80' : 'text-slate-700'}>
-              {sorted.map((l, i) => {
-                const cumPos = l.cumPct >= 0;
-                const todayPos = l.todayPct >= 0;
-                return (
-                  <tr key={l.id}
-                    onClick={() => onPreview(window.MARKET_STRATEGIES.find(s => s.id === l.id))}
-                    className={`cursor-pointer ${i % 2 === 0 ? '' : (dark ? 'bg-white/[0.02]' : 'bg-slate-50/50')} ${dark ? 'hover:bg-white/[0.06]' : 'hover:bg-sky-50/60'}`}
-                    title="Click to preview"
-                  >
-                    <td className="px-2 py-2 tabular-nums">{i + 1}</td>
-                    <td className="py-2 overflow-hidden">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: l.color }} />
-                        <span className="truncate">{l.name}</span>
-                      </div>
-                    </td>
-                    <td className={`py-2 text-right tabular-nums font-semibold ${cumPos ? 'text-emerald-500' : 'text-rose-500'}`}>{cumPos ? '+' : ''}{l.cumPct.toFixed(2)}%</td>
-                    <td className={`py-2 text-right tabular-nums ${todayPos ? 'text-emerald-500' : 'text-rose-500'}`}>{todayPos ? '+' : ''}{l.todayPct.toFixed(2)}%</td>
-                    <td className="px-2 py-2 text-right tabular-nums">{l.sharpe.toFixed(2)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StatusDot({ status, dark }) {
-  const map = {
-    watching: { dot: '#94a3b8', label: 'Watch' },
-    paper:    { dot: '#06b6d4', label: 'Paper' },
-    live:     { dot: '#ef4444', label: 'Deployed' },
-    paused:   { dot: '#f59e0b', label: 'Paused' },
-  };
-  const m = map[status] || map.watching;
-  return (
-    <span className={`ml-auto inline-flex shrink-0 items-center gap-1 rounded px-1 py-px text-[9.5px] font-semibold uppercase tracking-wider ${
-      dark ? 'bg-white/[0.04] text-white/55' : 'bg-slate-100 text-slate-500'
-    }`}>
-      <span className="h-1 w-1 rounded-full" style={{ background: m.dot }} />
-      {m.label}
-    </span>
-  );
-}
 
 function OnWatchTab({ direction, darkMode, watchedIds, onToggleWatch, onDeploy, onOptimize, onWriteNew, onManage, onPause, onPreview, onGoToDeployed }) {
   const isBold = direction === 'bold';
@@ -175,8 +34,6 @@ function OnWatchTab({ direction, darkMode, watchedIds, onToggleWatch, onDeploy, 
   var sortFn = function(a, b) {
     if (sortBy === 'cumulative') return (b.cumPnLPct || 0) - (a.cumPnLPct || 0);
     if (sortBy === 'today') return (b.todayPnLPct || 0) - (a.todayPnLPct || 0);
-    if (sortBy === 'sharpe') return (b.sharpe || 0) - (a.sharpe || 0);
-    if (sortBy === 'maxdd') return (a.maxDD || 0) - (b.maxDD || 0);
     if (sortBy === 'runtime') return (b.runDays || 0) - (a.runDays || 0);
     return 0;
   };
@@ -187,8 +44,6 @@ function OnWatchTab({ direction, darkMode, watchedIds, onToggleWatch, onDeploy, 
   var sortOptions = [
     { value: 'cumulative', label: 'Cumulative' },
     { value: 'today', label: 'Today' },
-    { value: 'sharpe', label: 'Sharpe' },
-    { value: 'maxdd', label: 'Max DD' },
     { value: 'runtime', label: 'Runtime' },
   ];
 
@@ -196,8 +51,6 @@ function OnWatchTab({ direction, darkMode, watchedIds, onToggleWatch, onDeploy, 
     <div className="relative px-7 py-5">
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-5">
-          <WatchLeaderboard watched={watched} dark={dark} onPreview={onPreview} />
-
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -333,13 +186,8 @@ function WatchCard({ w, dark, tick, onRemove, onDeploy, onGoToDeployed, onPrevie
   const todayLive = w.todayPnLPct + Number(tickAdj);
   const todayPos = todayLive >= 0;
   const status = statusFor(w);
-  const [posOpen, setPosOpen] = useStateW(false);
 
   const isWatching = w.deployStatus === 'watching';
-  const isPaused = w.deployStatus === 'paused';
-  const isLive = w.deployStatus === 'live';
-  const isPaper = w.deployStatus === 'paper';
-  const isDeployed = isLive || isPaper;
   const runtime = formatRuntime(w.addedOn);
 
   return (
@@ -380,32 +228,19 @@ function WatchCard({ w, dark, tick, onRemove, onDeploy, onGoToDeployed, onPrevie
 
       {/* Main row: metrics on left, equity on right */}
       <div className="flex flex-col items-stretch gap-3 px-4 pb-3 md:flex-row md:items-center">
-        <div className="grid flex-1 grid-cols-4 gap-3">
+        <div className="grid flex-1 grid-cols-2 gap-3">
           <MiniStat
             label="Today"
             value={`${todayPos ? '+' : ''}${todayLive.toFixed(2)}%`}
             tone={todayPos ? 'pos' : 'neg'}
             dark={dark}
           />
-          <MiniStat label="Sharpe" value={w.sharpe.toFixed(2)} dark={dark} />
-          <MiniStat label="Max DD" value={`${w.maxDD.toFixed(1)}%`} sub={`Win ${w.winRate}%`} dark={dark} />
           <MiniStat label="Started" value={w.addedOn ? w.addedOn.slice(0, 19).replace('T', ' ') : '--'} sub={`Running ${runtime}`} dark={dark} />
         </div>
         <div className="md:w-[220px] md:shrink-0">
           <EquityChart curve={w.curve} color={positive ? '#10b981' : '#ef4444'} height={68} dark={dark} />
         </div>
       </div>
-
-      {/* Positions section */}
-      {w.positions && w.positions.length > 0 && (
-        <PositionsBlock
-          positions={w.positions}
-          dark={dark}
-          open={posOpen}
-          onToggle={() => setPosOpen(o => !o)}
-          isPaperPreview={isWatching && w.paperPreview}
-        />
-      )}
 
       {/* Last signal banner */}
       <div className={`mx-4 mb-3 flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-[11.5px] ${
@@ -434,63 +269,6 @@ function WatchCard({ w, dark, tick, onRemove, onDeploy, onGoToDeployed, onPrevie
           </button>
         )}
       </div>
-    </div>
-  );
-}
-
-function PositionsBlock({ positions, dark, open, onToggle, isPaperPreview }) {
-  const avgPct = positions.length ? positions.reduce((a, p) => a + p.pct, 0) / positions.length : 0;
-  const totalMkt = positions.reduce((a, p) => a + (p.mktValue || 0), 0);
-  return (
-    <div className={`mx-4 mb-3 rounded-md border ${dark ? 'border-white/[0.05] bg-white/[0.02]' : 'border-slate-200 bg-slate-50/50'}`}>
-      <button onClick={onToggle} className={`flex w-full items-center justify-between px-3 py-2 text-[11.5px] ${dark ? 'text-white/70' : 'text-slate-600'}`}>
-        <span className="flex items-center gap-1.5">
-          <svg viewBox="0 0 24 24" className={`h-3 w-3 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
-          <span className={`font-medium uppercase tracking-wider text-[10.5px] ${dark ? 'text-white/55' : 'text-slate-500'}`}>Positions · {positions.length}</span>
-          {isPaperPreview && <span className={`rounded px-1 py-px text-[9.5px] font-semibold ${dark ? 'bg-cyan-400/15 text-cyan-300' : 'bg-cyan-50 text-cyan-700'}`}>SIGNAL ONLY</span>}
-        </span>
-        <span className={`tabular-nums font-medium ${avgPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-          Avg {avgPct >= 0 ? '+' : ''}{avgPct.toFixed(2)}%
-        </span>
-      </button>
-      {open && (
-        <table className="w-full text-[11.5px]">
-          <thead>
-            <tr className={`${dark ? 'text-white/40' : 'text-slate-400'}`}>
-              <th className="px-3 py-1 text-left font-medium">Symbol</th>
-              <th className="py-1 text-right font-medium">Weight</th>
-              <th className="py-1 text-right font-medium">Avg cost</th>
-              <th className="py-1 text-right font-medium">Last</th>
-              <th className="px-3 py-1 text-right font-medium">Return</th>
-            </tr>
-          </thead>
-          <tbody className={dark ? 'text-white/85' : 'text-slate-700'}>
-            {positions.map(p => {
-              const weight = totalMkt > 0 ? (p.mktValue / totalMkt) * 100 : 0;
-              return (
-                <tr key={p.symbol} className={`border-t ${dark ? 'border-white/5' : 'border-slate-200/70'}`}>
-                  <td className="px-3 py-1.5">
-                    <span className="flex items-center gap-1.5">
-                      <span className={`rounded px-1 py-px text-[9.5px] font-semibold ${
-                        p.side === 'short'
-                          ? (dark ? 'bg-rose-500/15 text-rose-400' : 'bg-rose-50 text-rose-600')
-                          : (dark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-                      }`}>{p.side === 'short' ? 'S' : 'L'}</span>
-                      <span className="font-medium">{p.symbol}</span>
-                    </span>
-                  </td>
-                  <td className="py-1.5 text-right tabular-nums">{weight.toFixed(1)}%</td>
-                  <td className="py-1.5 text-right tabular-nums">{p.avg.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td className="py-1.5 text-right tabular-nums">{p.last.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td className={`px-3 py-1.5 text-right tabular-nums font-medium ${p.pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                    {p.pct >= 0 ? '+' : ''}{p.pct.toFixed(2)}%
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
     </div>
   );
 }

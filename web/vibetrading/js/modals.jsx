@@ -589,8 +589,7 @@ Object.assign(window, { DeployModal, OptimizeModal, WriteStrategyModal });
 
 // ─────────────────────────────────────────────────────────────────────────
 // Strategy Preview modal — clicked from Marketplace cards.
-// Shows: full equity curve, current holdings / dynamic universe,
-// parameters (with plain-English explainers), recent trades, code snippet.
+// Shows: full equity curve, current holdings / dynamic universe, and recent trades.
 // ─────────────────────────────────────────────────────────────────────────
 function StrategyPreviewModal({ open, onClose, strategy, dark, watched, onToggleWatch, onDeploy }) {
   const [tab, setTabP] = useStateMo('overview');
@@ -640,8 +639,6 @@ function StrategyPreviewModal({ open, onClose, strategy, dark, watched, onToggle
           { id: 'overview', label: 'Overview' },
           { id: 'holdings', label: isMulti ? 'Current basket' : 'Holdings' },
           { id: 'trades',   label: 'Recent trades' },
-          { id: 'params',   label: 'Parameters' },
-          { id: 'code',     label: 'Code' },
         ].map(t => (
           <button key={t.id} onClick={() => setTabP(t.id)} className={`relative py-3 text-[12.5px] font-medium ${
             tab === t.id ? (dark ? 'text-white' : 'text-slate-900') : (dark ? 'text-white/55 hover:text-white' : 'text-slate-500 hover:text-slate-900')
@@ -657,8 +654,6 @@ function StrategyPreviewModal({ open, onClose, strategy, dark, watched, onToggle
         {tab === 'overview' && <PreviewOverview s={s} dark={dark} />}
         {tab === 'holdings' && <PreviewHoldings s={s} dark={dark} isMulti={isMulti} />}
         {tab === 'trades' && <PreviewTrades s={s} dark={dark} />}
-        {tab === 'params' && <PreviewParams s={s} dark={dark} />}
-        {tab === 'code' && <PreviewCode s={s} dark={dark} />}
       </div>
 
       {/* Footer CTA strip */}

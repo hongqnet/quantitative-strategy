@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Strategy — AInvest</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <script src="vendor/tailwindcss-browser/index.global.js"></script>
 
   <style>
     html, body, #root { height: 100%; margin: 0; }
@@ -120,23 +118,14 @@
     .animate-pulse { animation: softPulse 2s ease-in-out infinite; }
   </style>
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'], mono: ['JetBrains Mono', 'ui-monospace'] },
-        }
-      }
-    }
-  </script>
 </head>
 <body class="bg-slate-50">
   <div id="root"></div>
 
   <!-- React -->
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="vendor/react/react.development.js"></script>
+  <script src="vendor/react-dom/react-dom.development.js"></script>
+  <script src="vendor/babel/babel.min.js"></script>
 
   <!-- Tweaks panel (provides useTweaks, TweaksPanel, controls) -->
   <script type="text/babel" src="js/tweaks-panel.jsx"></script>

@@ -22,8 +22,6 @@ function DetailPage({ strategyId, strategy: strategyProp, source, watchedData, o
     { id: 'overview', label: 'Overview' },
     { id: 'holdings', label: isMulti ? 'Current basket' : 'Holdings' },
     { id: 'trades',   label: 'Trade list' },
-    { id: 'params',   label: 'Parameters' },
-    { id: 'code',     label: 'Code' },
   ] : [
     { id: 'overview', label: 'Overview' },
     { id: 'backtest', label: 'Backtest' },
@@ -143,14 +141,6 @@ function DetailPage({ strategyId, strategy: strategyProp, source, watchedData, o
             <div ref={el => sectionRefs.current['trades'] = el} className="scroll-mt-14">
               <SectionTitle label="Trade list" dark={dark} />
               <window.PreviewTrades s={strategy} dark={dark} />
-            </div>
-            <div ref={el => sectionRefs.current['params'] = el} className="scroll-mt-14">
-              <SectionTitle label="Parameters" dark={dark} />
-              <window.PreviewParams s={strategy} dark={dark} />
-            </div>
-            <div ref={el => sectionRefs.current['code'] = el} className="scroll-mt-14">
-              <SectionTitle label="Code" dark={dark} />
-              <window.PreviewCode s={strategy} dark={dark} />
             </div>
           </>
         ) : (
